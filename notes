@@ -1,0 +1,35 @@
+talk.google.com:5222
+TLS required
+SASL PLAIN authentication
+
+telnet talk.google.com 5222
+====
+Send:
+<?xml version='1.0'?>
+<stream:stream
+  from='cbradford@rackify.com'
+  to='gmail.com'
+  version='1.0'
+  xml:lang='en'
+  xmlns='jabber:client'
+  xmlns:stream='http://etherx.jabber.org/streams'>
+
+Response:
+<stream:stream from="gmail.com" id="A6303BE90DE3AB3A" version="1.0" xmlns:stream="http://etherx.jabber.org/streams" xmlns="jabber:client">
+  <stream:features>
+    <starttls xmlns="urn:ietf:params:xml:ns:xmpp-tls">
+      <required/>
+    </starttls>
+  <mechanisms xmlns="urn:ietf:params:xml:ns:xmpp-sasl">
+    <mechanism>X-GOOGLE-TOKEN</mechanism>
+    <mechanism>X-OAUTH2</mechanism>
+  </mechanisms>
+</stream:features>
+
+===
+
+Send: the STARTTLS command and prepare to restart the stream
+<starttls xmlns='urn:ietf:params:xml:ns:xmpp-tls'/>
+
+Response:
+<proceed xmlns="urn:ietf:params:xml:ns:xmpp-tls"/>
