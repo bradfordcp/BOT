@@ -63,3 +63,21 @@ exports.start_tls = function () {
   
   return stream_doc.toString();
 }
+
+/**
+ * StreamFactory#auth_plain([password]) -> String
+ * - password (String): Password we are authenticating with in plain text
+ *
+ * Generates the auth stanza used with plain authentication methods
+ **/
+exports.auth_plain = function (password) {
+  var stream_doc = xmlbuilder.create();
+  
+  // Create the starttls element
+  var auth = stream_doc.begin('auth');
+  auth.att('xmlns', 'urn:ietf:params:xml:ns:xmpp-sasl');
+  auth.att('mechanism', 'PLAIN');
+  if (password) auth.text(password);
+  
+  return stream_doc.toString();
+}
