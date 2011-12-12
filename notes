@@ -33,3 +33,35 @@ Send: the STARTTLS command and prepare to restart the stream
 
 Response:
 <proceed xmlns="urn:ietf:params:xml:ns:xmpp-tls"/>
+
+===
+
+Here we starttls on the same socket
+
+===
+
+Send: 
+<?xml version="1.0"?>
+<stream:stream 
+  from="bradfordcp" 
+  to="gmail.com" 
+  xml:lang="en" 
+  version="1.0" 
+  xmlns="jabber:client" 
+  xmlns:stream="http://etherx.jabber.org/streams">
+
+Response:
+<stream:stream 
+  from="gmail.com" 
+  id="C7D0296DF418D42D" 
+  version="1.0" 
+  xmlns:stream="http://etherx.jabber.org/streams" 
+  xmlns="jabber:client">
+  <stream:features>
+    <mechanisms xmlns="urn:ietf:params:xml:ns:xmpp-sasl">
+      <mechanism>PLAIN</mechanism>
+      <mechanism>X-GOOGLE-TOKEN</mechanism>
+      <mechanism>X-OAUTH2</mechanism>
+    </mechanisms>
+  </stream:features>
+  
