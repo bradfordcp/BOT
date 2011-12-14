@@ -329,13 +329,13 @@ function start_jabber_connection() {
     client.write(requests['roster_1'].request);
     
     // Fire off initial presence request
-//    console.log("Bound, sending presence");
-//    requests['presence_1'] = {
-//      request: stream_factory.presence('presence_1', jid, stream_factory.SHOW_STATES.CHAT, 'I am a Robot')
-//    };
-//    
-//    console.log(requests['presence_1'].request);
-//    client.write(requests['presence_1'].request);
+    console.log("Bound, sending presence");
+    requests['presence_1'] = {
+      request: stream_factory.presence('presence_1', jid, stream_factory.SHOW_STATES.CHAT, 'I am a Robot')
+    };
+    
+    console.log(requests['presence_1'].request);
+    client.write(requests['presence_1'].request);
   }
 }
 

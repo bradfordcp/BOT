@@ -22,10 +22,10 @@ module.exports = function starttls(socket, options, cb) {
   var pair = require('tls').createSecurePair(sslcontext, false);
 
   var cleartext = pipe(pair, socket);
-
+  
   pair.on('secure', function() {
     var verifyError = pair.ssl.verifyError();
-
+    
     if (verifyError) {
       cleartext.authorized = false;
       cleartext.authorizationError = verifyError;
