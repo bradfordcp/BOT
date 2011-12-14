@@ -8,6 +8,22 @@
 var xmlbuilder = require('xmlbuilder');
 
 /**
+ * StreamFactory.SHOW_STATES = {}
+ * A List of all show states available for presence
+ * 
+ * - AWAY: User is temporarily away
+ * - CHAT: User is available for chatting
+ * - DND: **Do Not Disturb**
+ * - XA: User is gone for an eXtended Away
+ **/
+exports.SHOW_STATES = {
+  AWAY: 'away',
+  CHAT: 'chat',
+  DND: 'dnd',
+  XA: 'xa'
+};
+
+/**
  * StreamFactory#start_stream(from, to[, language]) -> String
  * - from (String): Username and domain of the connecting entity
  * - to (String): Domain of the talk server you are opening a connection to
@@ -65,19 +81,86 @@ exports.start_tls = function () {
 }
 
 /**
- * StreamFactory#auth_plain([password]) -> String
+ * StreamFactory#auth_plain([username][, password]) -> String
+ * - username (String): Username we are authenticating with in plain text
  * - password (String): Password we are authenticating with in plain text
  *
  * Generates the auth stanza used with plain authentication methods
  **/
-exports.auth_plain = function (password) {
+exports.auth_plain = function (username, password) {
   var stream_doc = xmlbuilder.create();
   
   // Create the starttls element
   var auth = stream_doc.begin('auth');
   auth.att('xmlns', 'urn:ietf:params:xml:ns:xmpp-sasl');
   auth.att('mechanism', 'PLAIN');
-  if (password) auth.text(password);
+  if (username && password) auth.text(new Buffer("\0" + username + "\0" + password).toString('base64'));
   
   return stream_doc.toString();
 }
+
+/**
+ * StreamFactory#bind(request_id[, resource]) -> String
+ * - request_id (String): Request identifier
+ * - resource (String): Client generated resource identifier
+ *
+ * Generates the bind stanza for use with the bind stream feature
+ **/
+exports.bind = function (request_id, resource) {
+  var stream_doc = xmlbuilder.create();
+  var iq = stream_doc.begin('iq');
+  iq.att('type', 'set');
+  iq.att('id', request_id);
+  
+  var bind = iq.ele('bind');
+  bind.att('xmlns', 'urn:ietf:params:xml:ns:xmpp-bind');
+  
+  if (resource) {
+    bind.ele('resource').text(resource);
+  }
+  
+  return stream_doc.toString();
+}
+
+/**
+ * StreamFactory#roster(request_id, jid) -> String
+ * - request_id (String): Request identifier
+ * - jid (String): JID provided by the server
+ *
+ * Generates the roster request to see who is online
+ **/
+exports.roster = function (request_id, jid) {
+  var stream_doc = xmlbuilder.create();
+  var iq = stream_doc.begin('iq');
+  iq.att('type', 'get');
+  iq.att('id', request_id);
+  iq.att('from', jid)
+  
+  iq.ele('query').att('xmlns', 'jabber:iq:roster');
+  
+  return stream_doc.toString();
+}
+
+/**
+ * StreamFactory#presence(request_id, jid, show[, status]) -> String
+ * - request_id (String): Request identifier
+ * - jid (String): JID provided by the server
+ * - show (String): Availability sub-state may be any SHOW_STATES value
+ * - status (String): Optional natural language describing the currently shown state
+ * 
+ * Generates the presence request to indicate a presence
+ **/
+exports.presence = function (request_id, jid, show, status) {
+  var stream_doc = xmlbuilder.create();
+  var presence = stream_doc.begin('presence');
+  presence.att('from', jid);
+  presence.att('id', request_id);
+  presence.ele('show').text(show);
+  
+  if (status) {
+    presence.ele('status').text(status);
+  }
+  
+  return stream_doc.toString();
+}
+

@@ -9,77 +9,36 @@ var program = require('commander');
 
 program
   .version('0.0.1')
-  .option('--jabber_username [jabber_username]', 'Default Jabber Username')
-  .option('--jabber_password [jabber_password]', 'Default Jabber Password')
-  .option('--jabber_domain [jabber_domain]', 'Default Jabber Domain')
-  .option('--jabber_hostname [jabber_hostname]', 'Default Jabber Hostname')
+  .option('--jabber_username [jabber_username]', 'Jabber Username')
+  .option('--jabber_domain [jabber_domain]', 'Jabber User Domain')
+  .option('--jabber_hostname [jabber_hostname]', 'Jabber Server Hostname')
   .parse(process.argv)
 
 process.stdin.resume();
-check_username();
 
-function check_username() {
-  if (program.jabber_username) {
-    jabber_username = program.jabber_username;
-    
-    check_domain();
-  }
-  else {
-    prompt_username();
-  }
+if (program.jabber_username) {
+  jabber_username = program.jabber_username;
+}
+if (program.jabber_domain) {
+  jabber_domain = program.jabber_domain;
+}
+if (program.jabber_hostname) {
+  jabber_hostname = program.jabber_hostname;
 }
 
-function prompt_username() {
-  program.prompt('Jabber Username: ', function (user) {
-    jabber_username = user;
-    
-    check_domain();
-  });
-}
-
-function check_domain() {
-  if (program.jabber_domain) {
-    jabber_domain = program.jabber_domain;
-    
-    check_server();
-  }
-  else {
-    prompt_domain();
-  }
-}
-
-function prompt_domain() {
-  program.prompt('Jabber Domain: ', function (domain) {
-    jabber_domain = domain;
-    
-    check_server();
-  });
-}
-
-function check_server() {
-  if (program.jabber_hostname) {
-    jabber_server = program.jabber_hostname;
-    
-    check_password();
-  }
-  else {
-    prompt_server();
-  }
-}
-
-function prompt_server() {
-  program.prompt('Jabber Hostname: ', function (host) {
-    jabber_server = host;
-    
-    check_password();
-  });
-}
+check_password();
 
 function check_password() {
   if (program.jabber_password) {
-    jabber_domain = program.jabber_password;
+    jabber_password = program.jabber_password;
     
-    start_jabber_connection()
+    if (jabber_username && jabber_password && jabber_domain && jabber_hostname) {
+      start_jabber_connection();
+    }
+    else {
+      console.log('Missing connection information. Please see the help information');
+      process.exit();
+    }
   }
   else {
     prompt_password();
@@ -91,11 +50,23 @@ function prompt_password() {
     jabber_password = pass;
     process.stdin.destroy();
     
-    start_jabber_connection();
+    if (jabber_username && jabber_password && jabber_domain && jabber_hostname) {
+      start_jabber_connection();
+    }
+    else {
+      console.log('Missing connection information. Please see the help information');
+      process.exit();
+    }
   });
 }
 
 function start_jabber_connection() {
+  // Object for tracking requests
+  var requests = {};
+  
+  // Resource identifier for our connection
+  var jid = null;
+  
   // Require the net module
   var net = require('net');
 
@@ -114,7 +85,7 @@ function start_jabber_connection() {
 
   // Fire up the client
   var old_client = null;
-  var client = net.connect(5222, jabber_server);
+  var client = net.connect(5222, jabber_hostname);
   register_insecure_client_handlers();
 
   // Register insecure handlers
@@ -145,22 +116,28 @@ function start_jabber_connection() {
       }
       
       // Parse the XML payload
-      parser.parseString(response, function (err, payload) {
-        if (err) {
-          console.log("ERROR PARSING XML: ", response);
-          return;
-        }
-        
-        console.log(payload);
-        
-        // Handle various states, in the future have hooks where classes register for messages they are interested in.
-        if (payload) {
-          handle_payload(payload);
-        }
-        else {
-          // This was a null data response :(
-        }
-      });
+      try{
+        parser.parseString(response, function (err, payload) {
+          if (err) {
+            console.log("ERROR PARSING XML: ", response);
+            return;
+          }
+          
+          console.log(payload);
+          
+          // Handle various states, in the future have hooks where classes register for messages they are interested in.
+          if (payload) {
+            handle_payload(payload);
+          }
+          else {
+            // This was a null data response :(
+          }
+        });
+      } catch (err) {
+        console.log("ERROR RECEIVED!");
+        console.log(err);
+        process.exit();
+      }
       
       console.log("========================================================");
     });
@@ -185,6 +162,7 @@ function start_jabber_connection() {
       console.log(response);
       
       // Check to see if this is the start of a stream
+      response = response.replace("<?xml version='1.0' encoding='UTF-8'?>", "");
       if (response.substr(0, 14) == '<stream:stream') {
         console.log("Start stream, automatically close element");
         
@@ -193,22 +171,28 @@ function start_jabber_connection() {
       }
       
       // Parse the XML payload
-      parser.parseString(response, function (err, payload) {
-        if (err) {
-          console.log("ERROR PARSING XML: ", response);
-          return;
-        }
-        
-        console.log(payload);
-        
-        // Handle various states, in the future have hooks where classes register for messages they are interested in.
-        if (payload) {
-          handle_payload(payload);
-        }
-        else {
-          // This was a null data response :(
-        }
-      });
+      try {
+        parser.parseString(response, function (err, payload) {
+          if (err) {
+            console.log("ERROR PARSING XML: ", response);
+            return;
+          }
+          
+          console.log(payload);
+          
+          // Handle various states, in the future have hooks where classes register for messages they are interested in.
+          if (payload) {
+            handle_payload(payload);
+          }
+          else {
+            // This was a null data response :(
+          }
+        });
+      } catch (err) {
+        console.log("ERROR RECEIVED!");
+        console.log(err);
+        process.exit();
+      }
       
       console.log("========================================================");
     });
@@ -224,6 +208,31 @@ function start_jabber_connection() {
     }
     else if (payload['proceed']) {
       handle_proceed(payload['proceed']);
+    }
+    else if (payload['success']) {
+      handle_auth_success(payload['success']);
+    }
+    else if (payload['iq']) {
+      // Store the result if this is "named"
+      if (payload['iq']['@']['id'] && requests[payload['iq']['@']['id']]) {
+        requests[payload['iq']['@']['id']].response = payload;
+        
+        if (requests[payload['iq']['@']['id']].callback) {
+          requests[payload['iq']['@']['id']].callback(requests[payload['iq']['@']['id']]);
+        }
+      }
+      
+      if (payload['iq']['bind']) {
+        // Process the bind result
+        handle_bind(payload['iq']['bind']);
+      }
+      else if (payload['iq']['query']) {
+        if (payload['iq']['query']['@']['xmlns']) {
+          if (payload['iq']['query']['@']['xmlns'] == 'jabber:iq:roster') {
+            // Handle the 
+          }
+        }
+      }
     }
   }
 
@@ -260,14 +269,23 @@ function start_jabber_connection() {
         // Send the auth command
         console.log("PLAIN Supported");
 //        var auth = stream_factory.auth_plain(jabber_password);
-        //var auth = stream_factory.auth_plain(new Buffer(jabber_password).toString('base64'));
-        var auth = stream_factory.auth_plain();
+        var auth = stream_factory.auth_plain(jabber_username, jabber_password);
+//        var auth = stream_factory.auth_plain();
         
         console.log(auth);
         client.write(auth);
-//        client.write(new Buffer(auth).toString('base64'));
       }
+    } else if (features_payload['bind']) {
+      // Send the bind request
+      console.log("bind supported");
+      requests['bind_1'] = {
+        request: stream_factory.bind('bind_1')
+      };
+      
+      console.log(requests['bind_1'].request);
+      client.write(requests['bind_1'].request);
     }
+    
   }
 
   // Handles proceed responses (used to start TLS)
@@ -286,6 +304,38 @@ function start_jabber_connection() {
     
     // Register new handlers
     register_secure_client_handlers();
+  }
+  
+  // Handles a successful authentication
+  function handle_auth_success(success_payload) {
+    // Start another stream
+    var start_stream = stream_factory.start_stream(jabber_username, jabber_domain);
+    console.log('Starting Secure Authenticated Stream', start_stream);
+    
+    client.write(start_stream);
+  }
+  
+  // Handles a bind payload
+  function handle_bind(bind_payload) {
+    jid = bind_payload['jid'];
+    
+    // Fire off the roster request
+    console.log("Bound, starting roster query");
+    requests['roster_1'] = {
+      request: stream_factory.roster('roster_1', jid)
+    };
+    
+    console.log(requests['roster_1'].request);
+    client.write(requests['roster_1'].request);
+    
+    // Fire off initial presence request
+//    console.log("Bound, sending presence");
+//    requests['presence_1'] = {
+//      request: stream_factory.presence('presence_1', jid, stream_factory.SHOW_STATES.CHAT, 'I am a Robot')
+//    };
+//    
+//    console.log(requests['presence_1'].request);
+//    client.write(requests['presence_1'].request);
   }
 }
 
