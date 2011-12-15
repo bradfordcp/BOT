@@ -14,7 +14,7 @@ namespace :pdoc do
     
     PDoc.run({
       :source_files => source_files,
-      :destination => OUTPUT_DIR,
+      :destination => DOC_OUTPUT_DIR,
       :syntax_highlighter => :pygments,
       :markdown_parser => :bluecloth,
       :src_code_href => proc { |file|
@@ -33,7 +33,7 @@ namespace :pdoc do
 
   desc "Empties output directory"
   task :remove_doc do
-    rm_rf Dir.glob(File.join(OUTPUT_DIR, "*"))
+    rm_rf Dir.glob(File.join(DOC_OUTPUT_DIR, "*"))
   end
 
   desc "Empties the output directory and builds the documentation."
