@@ -2,7 +2,7 @@ require 'rake'
 require 'pdoc'
 
 ROOT_DIR = File.dirname(__FILE__)
-DOC_OUTPUT_DIR = File.join(ROOT_DIR, 'pdoc')
+DOC_OUTPUT_DIR = File.join(ROOT_DIR, '../BOT-docs')
 
 namespace :pdoc do
   desc "Builds the documentation"
@@ -17,8 +17,10 @@ namespace :pdoc do
       :destination => DOC_OUTPUT_DIR,
       :syntax_highlighter => :pygments,
       :markdown_parser => :bluecloth,
-      :src_code_href => proc { |file|
-        "http://github.com/bradfordcp/BOT/#{file}}"
+      :src_code_href => proc { |model|
+        file_name = model.file.gsub(ROOT_DIR, '')
+        file_name = file_name[1, file_name.length - 1]
+        "http://github.com/bradfordcp/BOT/blob/master/#{file_name}#L#{model.line_number}"
       },
       :pretty_urls => false,
       :bust_cache => true,
