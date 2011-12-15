@@ -20,6 +20,8 @@ Currently BOT is handling the following events:
 - Retrieves the roster
 - Sets initial presence
 
+- Registered matchers will respond to messages that they match
+
 Testing
 =======
 Currently I am manually testing behavior using my personal GMail / Google Talk 
@@ -29,6 +31,3 @@ testing. Until then this functions against Google Talk servers.
 Example
 =======
 ./bot.js --jabber\_username _username_ --jabber\_domain _domain_ --jabber_hostname _hostname_
-
-_Note: Functionality is limited while I push the spaghetti code mess of bot.js 
-into a cleaner API / class (JabberClient)_

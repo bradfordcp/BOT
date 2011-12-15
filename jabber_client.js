@@ -78,9 +78,9 @@ function JabberClient(username, domain, password, hostname, port) {
    * 
    * Resource identifer bound on the client and server. 
    * 
-   * _Note: This **may** be provided during the connection process, but not 
-   * necessarily accepted by jabber server. Should it be rejected the approved
-   * value will be stored here._
+   * _Note: This **may** be provided during the connection process, but not_ 
+   * _necessarily accepted by jabber server. Should it be rejected the approved_
+   * _value will be stored here._
    **/
   this.jid = "";
   
@@ -103,6 +103,9 @@ function JabberClient(username, domain, password, hostname, port) {
    **/ 
   this.requests = {};
   
+  // Register the local event listeners
+  this.register_event_handlers();
+  
   if(false === (this instanceof JabberClient)) {
     return new JabberClient();
   }
@@ -113,7 +116,7 @@ function JabberClient(username, domain, password, hostname, port) {
 util.inherits(JabberClient, events.EventEmitter);
 
 /**
- * JabberClient.stream_factory -> StreamFactory
+ * JabberClient#stream_factory -> StreamFactory
  * 
  * Helper for generating XML Stream stanzas conforming to the XMPP protocol.
  * This is shared as we do not have any linking between the functions in the
@@ -122,7 +125,7 @@ util.inherits(JabberClient, events.EventEmitter);
 JabberClient.prototype.stream_factory = require('./stream_factory.js');
 
 /**
- * JabberClient.xml_parser -> xml2js.Parser
+ * JabberClient#xml_parser -> xml2js.Parser
  * 
  * Global XML parser for use across clients and connections.
  **/
@@ -141,7 +144,7 @@ JabberClient.prototype.connect = function () {
 }
 
 /**
- * JabberClient.register_stream_handlers -> null
+ * JabberClient#register_stream_handlers -> null
  * 
  * Registers internal handlers for socket events on the active connection.
  **/
@@ -152,7 +155,7 @@ JabberClient.prototype.register_stream_handlers = function () {
     console.log('Client Connected');
     
     var start_stream = self.stream_factory.start_stream(self.connection_information.username, self.connection_information.domain);
-    console.log('Starting Starting Stream', start_stream);
+    console.log('Starting Stream', start_stream);
     
     self.connections.active.write(start_stream);
   });
@@ -176,20 +179,20 @@ JabberClient.prototype.register_stream_handlers = function () {
     }
     
     try{
-      self.parser.parseString(response, function (err, payload) {
+      self.parser.parseString(response, function (err, decoded_response) {
         if (err) {
-          console.log("ERROR PARSING XML: ", response);
           return;
         }
         
-        console.log(payload);
+        console.log(decoded_response);
         
         // Handle various states, in the future have hooks where classes register for messages they are interested in.
-        if (payload) {
-          //handle_payload(payload);
+        if (decoded_response) {
+          self.route_response(decoded_response);
         }
         else {
           // This was a null data response :(
+          console.log("NULL Data Response");
         }
       });
     } catch (err) {
@@ -198,6 +201,217 @@ JabberClient.prototype.register_stream_handlers = function () {
       process.exit();
     }
   });
+}
+
+/**
+ * JabberClient#route_response(response) -> null
+ * - response (Object): Parsed XML
+ * 
+ * fires stream:stream, stream:features
+ * 
+ * Generates and emits the approriate events based off of the returned response.
+ **/
+JabberClient.prototype.route_response = function (response) {
+  var self = this;
+  
+  // If there is an 'id' related to this response _and_ we have a request with that id. Fire off its callback first.
+  if (response['@'] && response['@']['id']) {
+    var response_id = response['@']['id'];
+    if (self.requests[response_id]) {
+      self.requests[response_id].response = response;
+      
+      if (self.requests[response_id].callback) self.requests[response_id].callback();
+    }
+  }
+  
+  var keys = [];
+  for (var key in response) {
+    if (response.hasOwnProperty(key)) {
+      keys.push(key);
+      
+      // For each key that is at the root level and not '@' (our attribute helper) fire off an event with that value
+      if (response[key]['@'] && response[key]['@']['id']) {
+        var response_id = response[key]['@']['id'];
+        if (self.requests[response_id]) {
+          console.log('Matched named request, storing result');
+          self.requests[response_id].response = response;
+          
+          if (self.requests[response_id].callback) {
+            console.log('Firing specified callback')
+            self.requests[response_id].callback(response);
+            break;
+          }
+        }
+      }
+      
+      console.log('Firing: ', key);
+      self.emit(key, response[key]);
+    }
+  }
+}
+
+/**
+ * JabberClient#register_event_handlers() -> null
+ * 
+ * Registers handlers for the events emitted by the response router.
+ **/
+JabberClient.prototype.register_event_handlers = function () {
+  var self = this;
+  
+  // Process the opening of a stream, passing along stream:features
+  self.on('stream:stream', function (response) {
+    console.log('Handling Stream');
+    
+    if (response['stream:features']) {
+      console.log('Firing: ', 'stream:features');
+      self.emit('stream:features', response['stream:features']);
+    }
+  });
+  
+  // Emit all stream:features provided, breaking on starttls
+  self.on('stream:features', function (response) {
+    for (var key in response) {
+      if (key != '@' && response.hasOwnProperty(key)) {
+        console.log('stream:feature: ', key);
+        
+        self.emit(key, response[key]);
+        
+        if (key == 'starttls') return; // Stop processing until we handle tls negotiation
+      }
+    }
+  });
+  
+  // Start the TLS handshake
+  self.on('starttls', function (response) {
+    var start_tls = self.stream_factory.start_tls();
+    console.log('Starting TLS', start_tls);
+    self.connections.active.write(start_tls);
+  });
+  
+  // Proceed with the TLS handshake and authorization
+  self.on('proceed', function (response) {
+    // Remove listeners from the insecure connection
+    self.connections.insecure.removeAllListeners();
+    
+    // Start up a new secure connection (over the open socket)
+    self.connections.secure = starttls(self.connections.insecure, {}, function () {
+      console.log("In Callback, Emitting connect call");
+      self.connections.active.emit('connect');
+    });
+    self.connections.active = self.connections.secure;
+    
+    // Re-register stream handlers as we have a new active connection
+    self.register_stream_handlers();
+  });
+  
+  // Process authentication mechanisms (currently PLAIN is supported)
+  self.on('mechanisms', function (response) {
+    console.log('Interrogating Mechanisms', response['mechanism']);
+      var plain_supported = false;
+      for (var i in response['mechanism']) {
+        var mechanism = response['mechanism'][i];
+        if (mechanism == 'PLAIN') {
+          plain_supported = true;
+          break;
+        }
+      }
+      
+      if (plain_supported) {
+        // Send the auth command
+        console.log("PLAIN Supported");
+        var auth = self.stream_factory.auth_plain(self.connection_information.username, self.connection_information.password);
+        
+        console.log('Authenticating: ', auth);
+        self.connections.active.write(auth);
+      }
+  });
+  
+  // Handle a successful authentication and start the new stream
+  self.on('success', function (response) {
+    // Start another stream
+    var start_stream = self.stream_factory.start_stream(self.connection_information.username, self.connection_information.domain);
+    console.log('Starting Secure Authenticated Stream', start_stream);
+    
+    self.connections.active.write(start_stream);
+  });
+  
+  // Process a bind feature and it's response
+  self.on('bind', function (response) {
+    console.log("bind supported");
+    self.requests['bind_1'] = {
+      request: self.stream_factory.bind('bind_1'),
+      callback: function (response) {
+        //Store our jid and emit the 'connect' event as our process is complete
+        if (response['iq'] && response['iq']['bind'] && response['iq']['bind']['jid']) {
+          self.jid = response['iq']['bind']['jid'];
+
+          self.emit('connect');
+        }
+      }
+    };
+    
+    console.log(self.requests['bind_1'].request);
+    self.connections.active.write(self.requests['bind_1'].request);
+  });
+}
+
+/**
+ * JabberClient#presence(show[, status]) -> null
+ * - show (String): Availability sub-state may be any SHOW_STATES value
+ * - status (String): Optional natural language describing the currently shown state
+ * 
+ * Sets the current presence
+ **/
+JabberClient.prototype.presence = function (show, status) {
+  var self = this;
+  
+  if (this.jid) {
+    this.requests['presence_1'] = {
+      request: this.stream_factory.presence('presence_1', this.jid, show, status)
+    };
+    
+    console.log("Sending Presence: ", this.requests['presence_1'].request);
+    this.connections.active.write(this.requests['presence_1'].request);
+  }
+}
+
+/**
+ * JabberClient#roster([callback]) -> null
+ * - callback (function): Callback function to be called when the request is completed
+ * 
+ * Performs the roster query call.
+ **/
+JabberClient.prototype.roster = function (callback) {
+  var self = this;
+  
+  if (this.jid) {
+    this.requests['roster_1'] = {
+      request: this.stream_factory.roster('roster_1', this.jid)
+    };
+    
+    if (callback) this.requests['roster_1'].callback = callback;
+      
+    console.log("Sending Roster: ", this.requests['roster_1'].request);
+    this.connections.active.write(this.requests['roster_1'].request);
+  }
+}
+
+/**
+ * JabberClient#message(to, body[, lang]) -> null
+ * - to (String): jid or username@domain the message is being sent to
+ * - body (String): Body of the message
+ * - lang (String): 2 character language identifier
+ * 
+ * Sets the current presence
+ **/
+JabberClient.prototype.message = function (to, body, lang) {
+  var self = this;
+  
+  if (this.jid) {
+    var message = this.stream_factory.message(this.jid, to, body, lang);
+    console.log('Sending Message', message);
+    this.connections.active.write(message);
+  }
 }
 
 // Export our class

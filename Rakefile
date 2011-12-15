@@ -12,6 +12,17 @@ namespace :pdoc do
       source_files << path
     end
     
+    # Copy in the project README file
+    puts "Copying README.md and MIT-LICENSE.txt"
+    files = ['README.md', 'MIT-LICENSE.txt']
+    files.each do |file|
+      File.open(File.join(ROOT_DIR, file), 'r') do |reader|
+        File.open(File.join(DOC_OUTPUT_DIR, file), 'w') do |writer|
+          writer.write(reader.read)
+        end
+      end
+    end
+    
     PDoc.run({
       :source_files => source_files,
       :destination => DOC_OUTPUT_DIR,
@@ -27,7 +38,7 @@ namespace :pdoc do
       :name => 'Node XMPP Client / Bot Framework',
       :short_name => 'BOT',
       :home_url => 'https://github.com/bradfordcp/BOT',
-      #:doc_url => 'https://example.com/api', # The docs are not published yet
+      :doc_url => 'http://bradfordcp.github.com/BOT/',
       :version => "0.1.0",
       :copyright_notice => 'This work is licensed under the <a rel="license" href="https://github.com/bradfordcp/BOT/blob/master/MIT-LICENSE.txt">MIT License</a>.' 
     })

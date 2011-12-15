@@ -164,3 +164,30 @@ exports.presence = function (request_id, jid, show, status) {
   return stream_doc.toString();
 }
 
+/**
+ * StreamFactory#message(jid, to, body[, lang]) -> String
+ * - jid (String): JID provided by the server
+ * - to (String): jid or username@domain the message is being sent to
+ * - body (String): Body of the message
+ * - lang (String): 2 character language identifier
+ * 
+ * Generates the message XML stanza
+ **/
+exports.message = function (jid, to, body, lang) {
+  var stream_doc = xmlbuilder.create();
+  var message = stream_doc.begin('message');
+  message.att('from', jid);
+  message.att('to', to);
+  
+  if (lang) {
+    message.att('xml:lang', lang);
+  }
+  else {
+    message.att('xml:lang', 'en');
+  }
+  
+  message.ele('body').text(body);
+  
+  return stream_doc.toString();
+}
+
