@@ -1,2 +1,3 @@
 .*.pdoc.yaml
 .rvmrc
+pdoc/**

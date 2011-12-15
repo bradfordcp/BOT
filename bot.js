@@ -26,24 +26,10 @@ if (program.jabber_hostname) {
   jabber_hostname = program.jabber_hostname;
 }
 
-check_password();
+var JabberClient = require('./jabber_client.js');
+var new_client = null;
 
-function check_password() {
-  if (program.jabber_password) {
-    jabber_password = program.jabber_password;
-    
-    if (jabber_username && jabber_password && jabber_domain && jabber_hostname) {
-      start_jabber_connection();
-    }
-    else {
-      console.log('Missing connection information. Please see the help information');
-      process.exit();
-    }
-  }
-  else {
-    prompt_password();
-  }
-}
+prompt_password();
 
 function prompt_password() {
   program.password('Jabber Password: ', function (pass) {
@@ -51,13 +37,18 @@ function prompt_password() {
     process.stdin.destroy();
     
     if (jabber_username && jabber_password && jabber_domain && jabber_hostname) {
-      start_jabber_connection();
+      new_start_jabber_connection();
     }
     else {
       console.log('Missing connection information. Please see the help information');
       process.exit();
     }
   });
+}
+
+function new_start_jabber_connection() {
+  new_client = new JabberClient(jabber_username, jabber_domain, jabber_password, jabber_hostname);
+  new_client.connect();
 }
 
 function start_jabber_connection() {
