@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <title>BOT  v0.1.0 API documentation | JabberClient#connect</title>
+  <title>BOT  v0.1.0 API documentation | JabberClient#presence</title>
   <meta name="generator" content="PDoc" />
   
   <script charset="utf-8" src="../../../javascripts/pdoc/prototype.js" type="text/javascript"></script>
@@ -39,9 +39,9 @@
       
       <div class="sidebar-pane scrollable" id="menu_pane">
         <ul class="menu-items" id="api_menu"><li><div class="menu-item"><a class="class current-parent" href="../../../JabberClient/index.html" title="JabberClient (class)">JabberClient</a></div><ul><li><div class="menu-item"><a class="constructor" href="../../../JabberClient/new/index.html" title="new JabberClient (constructor)">new</a></div></li>
-<li><div class="menu-item"><a class="instance-method current" href="../../../JabberClient/prototype/connect/index.html" title="JabberClient#connect (instance method)">connect</a></div></li>
+<li><div class="menu-item"><a class="instance-method" href="../../../JabberClient/prototype/connect/index.html" title="JabberClient#connect (instance method)">connect</a></div></li>
 <li><div class="menu-item"><a class="instance-method" href="../../../JabberClient/prototype/message/index.html" title="JabberClient#message (instance method)">message</a></div></li>
-<li><div class="menu-item"><a class="instance-method" href="../../../JabberClient/prototype/presence/index.html" title="JabberClient#presence (instance method)">presence</a></div></li>
+<li><div class="menu-item"><a class="instance-method current" href="../../../JabberClient/prototype/presence/index.html" title="JabberClient#presence (instance method)">presence</a></div></li>
 <li><div class="menu-item"><a class="instance-method" href="../../../JabberClient/prototype/register_event_handlers/index.html" title="JabberClient#register_event_handlers (instance method)">register_event_handlers</a></div></li>
 <li><div class="menu-item"><a class="instance-method" href="../../../JabberClient/prototype/roster/index.html" title="JabberClient#roster (instance method)">roster</a></div></li>
 <li><div class="menu-item"><a class="instance-method" href="../../../JabberClient/prototype/route_response/index.html" title="JabberClient#route_response (instance method)">route_response</a></div></li>
@@ -74,16 +74,16 @@
   
     <li>&rarr; <a href="../../../JabberClient/index.html" title="JabberClient (class)">JabberClient</a></li>
   
-    <li>&rarr; <a href="../../../JabberClient/prototype/connect/index.html" title="JabberClient#connect (instance method)">connect</a></li>
+    <li>&rarr; <a href="../../../JabberClient/prototype/presence/index.html" title="JabberClient#presence (instance method)">presence</a></li>
   
 </ul>
 
 
-  <p id="src_code_href"><a href="http://github.com/bradfordcp/BOT/blob/master/jabber_client.js#L139">src code</a></p>
+  <p id="src_code_href"><a href="http://github.com/bradfordcp/BOT/blob/master/jabber_client.js#L365">src code</a></p>
 
 
 <h2 class="page-title">
-  <span class="type">instance method</span> JabberClient#connect
+  <span class="type">instance method</span> JabberClient#presence
 </h2>
 
 
@@ -95,11 +95,31 @@
   <div class="section-content">
     <div class="method-description">
       
-        <pre class="syntax"><code class="ebnf">JabberClient#connect() &rarr; null</code></pre>
+        <pre class="syntax"><code class="ebnf">JabberClient#presence(show[, status]) &rarr; null</code></pre>
+
+  <ul class="argument-list">
+    
+      <li>
+        <code class="argument-name">show</code>
+        
+          <span class="argument-types">(<code>String</code>)</span>
+        
+         &ndash; Availability sub-state may be any SHOW_STATES value
+      </li>
+    
+      <li>
+        <code class="argument-name">status</code>
+        
+          <span class="argument-types">(<code>String</code>)</span>
+        
+         &ndash; Optional natural language describing the currently shown state
+      </li>
+    
+  </ul> <!-- .argument-list -->
 
       
 
-      <p>Initiate a connection to the jabber server</p>
+      <p>Sets the current presence</p>
       
       
 

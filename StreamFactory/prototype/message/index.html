@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <title>BOT  v0.1.0 API documentation | StreamFactory#roster</title>
+  <title>BOT  v0.1.0 API documentation | StreamFactory#message</title>
   <meta name="generator" content="PDoc" />
   
   <script charset="utf-8" src="../../../javascripts/pdoc/prototype.js" type="text/javascript"></script>
@@ -42,9 +42,9 @@
 <li><div class="menu-item"><a class="class current-parent" href="../../../StreamFactory/index.html" title="StreamFactory (class)">StreamFactory</a></div><ul><li><div class="menu-item"><a class="constant" href="../../../StreamFactory/SHOW_STATES/index.html" title="StreamFactory.SHOW_STATES (constant)">SHOW_STATES</a></div></li>
 <li><div class="menu-item"><a class="instance-method" href="../../../StreamFactory/prototype/auth_plain/index.html" title="StreamFactory#auth_plain (instance method)">auth_plain</a></div></li>
 <li><div class="menu-item"><a class="instance-method" href="../../../StreamFactory/prototype/bind/index.html" title="StreamFactory#bind (instance method)">bind</a></div></li>
-<li><div class="menu-item"><a class="instance-method" href="../../../StreamFactory/prototype/message/index.html" title="StreamFactory#message (instance method)">message</a></div></li>
+<li><div class="menu-item"><a class="instance-method current" href="../../../StreamFactory/prototype/message/index.html" title="StreamFactory#message (instance method)">message</a></div></li>
 <li><div class="menu-item"><a class="instance-method" href="../../../StreamFactory/prototype/presence/index.html" title="StreamFactory#presence (instance method)">presence</a></div></li>
-<li><div class="menu-item"><a class="instance-method current" href="../../../StreamFactory/prototype/roster/index.html" title="StreamFactory#roster (instance method)">roster</a></div></li>
+<li><div class="menu-item"><a class="instance-method" href="../../../StreamFactory/prototype/roster/index.html" title="StreamFactory#roster (instance method)">roster</a></div></li>
 <li><div class="menu-item"><a class="instance-method" href="../../../StreamFactory/prototype/start_stream/index.html" title="StreamFactory#start_stream (instance method)">start_stream</a></div></li>
 <li><div class="menu-item"><a class="instance-method" href="../../../StreamFactory/prototype/start_tls/index.html" title="StreamFactory#start_tls (instance method)">start_tls</a></div></li>
 <li><div class="menu-item"><a class="instance-method" href="../../../StreamFactory/prototype/stop_stream/index.html" title="StreamFactory#stop_stream (instance method)">stop_stream</a></div></li></ul></li></ul><!--- #api_menu =-->
@@ -69,16 +69,16 @@
   
     <li>&rarr; <a href="../../../StreamFactory/index.html" title="StreamFactory (class)">StreamFactory</a></li>
   
-    <li>&rarr; <a href="../../../StreamFactory/prototype/roster/index.html" title="StreamFactory#roster (instance method)">roster</a></li>
+    <li>&rarr; <a href="../../../StreamFactory/prototype/message/index.html" title="StreamFactory#message (instance method)">message</a></li>
   
 </ul>
 
 
-  <p id="src_code_href"><a href="http://github.com/bradfordcp/BOT/blob/master/stream_factory.js#L132">src code</a></p>
+  <p id="src_code_href"><a href="http://github.com/bradfordcp/BOT/blob/master/stream_factory.js#L176">src code</a></p>
 
 
 <h2 class="page-title">
-  <span class="type">instance method</span> StreamFactory#roster
+  <span class="type">instance method</span> StreamFactory#message
 </h2>
 
 
@@ -90,16 +90,47 @@
   <div class="section-content">
     <div class="method-description">
       
-        <pre class="syntax"><code class="ebnf">StreamFactory#roster(request_id, jid) &rarr; String</code></pre>
+        <pre class="syntax"><code class="ebnf">StreamFactory#message(jid, to, body[, lang]) &rarr; String</code></pre>
+
+  <ul class="argument-list">
+    
+      <li>
+        <code class="argument-name">jid</code>
+        
+          <span class="argument-types">(<code>String</code>)</span>
+        
+         &ndash; JID provided by the server
+      </li>
+    
+      <li>
+        <code class="argument-name">to</code>
+        
+          <span class="argument-types">(<code>String</code>)</span>
+        
+         &ndash; jid or username@domain the message is being sent to
+      </li>
+    
+      <li>
+        <code class="argument-name">body</code>
+        
+          <span class="argument-types">(<code>String</code>)</span>
+        
+         &ndash; Body of the message
+      </li>
+    
+      <li>
+        <code class="argument-name">lang</code>
+        
+          <span class="argument-types">(<code>String</code>)</span>
+        
+         &ndash; 2 character language identifier
+      </li>
+    
+  </ul> <!-- .argument-list -->
 
       
 
-      <ul>
-<li>request_id (String): Request identifier</li>
-<li>jid (String): JID provided by the server</li>
-</ul>
-
-<p>Generates the roster request to see who is online</p>
+      <p>Generates the message XML stanza</p>
       
       
 
