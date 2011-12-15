@@ -26,6 +26,9 @@ Currently I am manually testing behavior using my personal GMail / Google Talk
 account. In the near future I am looking to bring in Jasmine for some simple 
 testing. Until then this functions against Google Talk servers.
 
-Exmaple
+Example
 =======
 ./bot.js --jabber\_username _username_ --jabber\_domain _domain_ --jabber_hostname _hostname_
+
+_Note: Functionality is limited while I push the spaghetti code mess of bot.js 
+into a cleaner API / class (JabberClient)_
